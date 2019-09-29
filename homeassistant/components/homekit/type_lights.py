@@ -167,15 +167,18 @@ class Light(HomeAccessory):
             params = {ATTR_ENTITY_ID: self.entity_id, ATTR_HS_COLOR: color}
             self.call_service(DOMAIN, SERVICE_TURN_ON, params, f"set color at {color}")
 
+    def _set_status(self, status):
+        self._state = status
+        if not self._flag[CHAR_ON] and self.char_on.value != self._state:
+            self.char_on.set_value(self._state)
+        self._flag[CHAR_ON] = False
+
     def update_state(self, new_state):
         """Update light after state change."""
         # Handle State
         state = new_state.state
         if state in (STATE_ON, STATE_OFF):
-            self._state = 1 if state == STATE_ON else 0
-            if not self._flag[CHAR_ON] and self.char_on.value != self._state:
-                self.char_on.set_value(self._state)
-            self._flag[CHAR_ON] = False
+            self._set_status(1 if state == STATE_ON else 0)
 
         # Handle Brightness
         if CHAR_BRIGHTNESS in self.chars:
@@ -183,7 +186,10 @@ class Light(HomeAccessory):
             if not self._flag[CHAR_BRIGHTNESS] and isinstance(brightness, int):
                 brightness = round(brightness / 255 * 100, 0)
                 if self.char_brightness.value != brightness:
-                    self.char_brightness.set_value(brightness)
+                    if self.zero_is_turn_off and brightness == 0:
+                        self._set_status(0)
+                    else:
+                        self.char_brightness.set_value(brightness)
             self._flag[CHAR_BRIGHTNESS] = False
 
         # Handle color temperature

@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import pytest
 
-from homeassistant.components.homekit.const import ATTR_VALUE
+from homeassistant.components.homekit.const import ATTR_VALUE, CONF_ZERO_IS_TURN_OFF
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_BRIGHTNESS_PCT,
@@ -203,3 +203,62 @@ async def test_light_rgb_color(hass, hk_driver, cls, events):
     assert call_turn_on[0].data[ATTR_HS_COLOR] == (145, 75)
     assert len(events) == 1
     assert events[-1].data[ATTR_VALUE] == "set color at (145, 75)"
+
+
+async def test_light_brightness_zero_is_turn_off_default(hass, hk_driver, cls, events):
+    """Test light with brightness."""
+    entity_id = "light.demo"
+
+    hass.states.async_set(
+        entity_id,
+        STATE_ON,
+        {ATTR_SUPPORTED_FEATURES: SUPPORT_BRIGHTNESS, ATTR_BRIGHTNESS: 102},
+    )
+    await hass.async_block_till_done()
+    acc = cls.light(hass, hk_driver, "Light", entity_id, 2, None)
+
+    assert acc.char_brightness.value == 0
+
+    await hass.async_add_job(acc.run)
+    await hass.async_block_till_done()
+
+    assert acc.char_brightness.value == 40
+
+    hass.states.async_set(
+        entity_id,
+        STATE_OFF,
+        {ATTR_SUPPORTED_FEATURES: SUPPORT_BRIGHTNESS, ATTR_BRIGHTNESS: 0},
+    )
+    await hass.async_block_till_done()
+
+    assert acc.char_brightness.value == 40
+
+
+async def test_light_brightness_zero_is_turn_off_false(hass, hk_driver, cls, events):
+    """Test light with brightness."""
+    entity_id = "light.demo"
+    config = {CONF_ZERO_IS_TURN_OFF: False}
+
+    hass.states.async_set(
+        entity_id,
+        STATE_ON,
+        {ATTR_SUPPORTED_FEATURES: SUPPORT_BRIGHTNESS, ATTR_BRIGHTNESS: 102},
+    )
+    await hass.async_block_till_done()
+    acc = cls.light(hass, hk_driver, "Light", entity_id, 2, config)
+
+    assert acc.char_brightness.value == 0
+
+    await hass.async_add_job(acc.run)
+    await hass.async_block_till_done()
+
+    assert acc.char_brightness.value == 40
+
+    hass.states.async_set(
+        entity_id,
+        STATE_OFF,
+        {ATTR_SUPPORTED_FEATURES: SUPPORT_BRIGHTNESS, ATTR_BRIGHTNESS: 0},
+    )
+    await hass.async_block_till_done()
+
+    assert acc.char_brightness.value == 0

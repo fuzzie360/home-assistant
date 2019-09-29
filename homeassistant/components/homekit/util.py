@@ -21,6 +21,7 @@ from .const import (
     CONF_FEATURE_LIST,
     CONF_LINKED_BATTERY_SENSOR,
     CONF_LOW_BATTERY_THRESHOLD,
+    CONF_ZERO_IS_TURN_OFF,
     DEFAULT_LOW_BATTERY_THRESHOLD,
     FEATURE_ON_OFF,
     FEATURE_PLAY_PAUSE,
@@ -45,6 +46,7 @@ BASIC_INFO_SCHEMA = vol.Schema(
         vol.Optional(
             CONF_LOW_BATTERY_THRESHOLD, default=DEFAULT_LOW_BATTERY_THRESHOLD
         ): cv.positive_int,
+        vol.Optional(CONF_ZERO_IS_TURN_OFF): cv.boolean,
     }
 )
 

@@ -32,6 +32,7 @@ from .const import (
     CHAR_STATUS_LOW_BATTERY,
     CONF_LINKED_BATTERY_SENSOR,
     CONF_LOW_BATTERY_THRESHOLD,
+    CONF_ZERO_IS_TURN_OFF,
     DEBOUNCE_TIMEOUT,
     DEFAULT_LOW_BATTERY_THRESHOLD,
     EVENT_HOMEKIT_CHANGED,
@@ -94,6 +95,7 @@ class HomeAccessory(Accessory):
         self.entity_id = entity_id
         self.hass = hass
         self.debounce = {}
+        self.zero_is_turn_off = self.config.get(CONF_ZERO_IS_TURN_OFF, True)
         self._support_battery_level = False
         self._support_battery_charging = True
         self.linked_battery_sensor = self.config.get(CONF_LINKED_BATTERY_SENSOR)
